@@ -184,12 +184,26 @@ def add(a, b, ans):
         b[0] = -b[0]
 
 
+def rsh(a, b, ans):
+    n = len(a)
+    ones = 2**32 - 1
+    k = b % 32
+    for i in reversed(range(n)):
+        l = i - (b + 31) // 32
+        r = i - b // 32
+        al = a[l] if l >= 0 else 0
+        ar = a[r] if r >= 0 else 0
+        sl = (al << (32 - k)) & ones
+        sr = (ar >> k) & ones
+        ans[i] = sl | sr
+
+
 def main():
     pi = np.array([3, 608135816, 2242054355], dtype=np.uint32)
     minus_pi = np.array([-3, 608135816, 2242054355], dtype=np.uint32)
     print(pi)
     ans = np.zeros_like(pi, dtype=np.uint32)
-    add(pi, minus_pi, ans)
+    rsh(pi, 64, ans)
     print(ans)
     print(decode(ans))
 
