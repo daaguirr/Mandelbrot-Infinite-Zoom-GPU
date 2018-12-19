@@ -28,9 +28,15 @@ def encode(x, n):
 
 
 def decode(n):
+    was_negative = np.int32(n[0]) < 0
+    if was_negative:
+        n[0] = -n[0]
     a = 0
     for i, x in enumerate(n):
         a += x * (2 ** (-i * 32))
+    if was_negative:
+        a = -a
+        n[0] = -n[0]
     return a
 
 
@@ -39,19 +45,22 @@ def uadd(a, b, ans):
     carry = np.int64(0)
     for i in reversed(range(n)):
         abc = np.int64(a[i]) + np.int64(b[i]) + np.int64(carry)
-        print(abc)
         ans[i] = abc
         carry = abc >> 32
 
 
 def usub(a, b, ans):
     n = len(a)
+    aux = b.copy()
     i = n - 1
     while i >= 0 and b[i] == 0:
-        b[i] = -1
+        aux[i] = -1
         i -= 1
-    b[i] ^= 2 ** 32 - 1
-    uadd(a, b, ans)
+    if i >= 0:
+        aux[i] -= 1
+    for j in range(n):
+        aux[j] ^= 2 ** 32 - 1
+    uadd(a, aux, ans)
 
 
 def compare(a, b):
@@ -62,10 +71,6 @@ def compare(a, b):
         if a[i] != b[i]:
             return a[i] - b[i]
     return 0
-
-
-def umul(a, b, ans):
-    raise NotImplementedError
 
 
 def lsh32(a, n):
@@ -86,25 +91,57 @@ def rsh32(a, n):
             a[i] = 0
 
 
+def umuli(a, b, ans):
+    n = len(a)
+    carry = 0
+    for i in reversed(range(n)):
+        abc = int(a[i]) * b + carry
+        ans[i] = abc
+        carry = abc >> 32
+
+
+def umul(a, b, ans):
+    n = len(a)
+    aux = a.copy()
+    tmp = np.zeros_like(a)
+    tmp2 = np.zeros_like(a)
+    print(f'ans: {ans}')
+    for i in range(n):
+        umuli(aux, b[i], tmp)
+        uadd(ans, tmp, tmp2)
+        for j in range(n):
+            ans[j] = tmp2[j]
+        print('')
+        print(f'aux: {aux}')
+        print(f'* {b[i]} =')
+        print(f'tmp: {tmp}')
+        print('ans += tmp')
+        print(f'ans: {ans}')
+        rsh32(aux, 1)
+
+
 def mul(a, b, ans):
-    sgn_a = np.int32(a[0]) < 0
-    sgn_b = np.int32(b[0]) < 0
+    sgn_a = np.int32(a[0]) >= 0
+    sgn_b = np.int32(b[0]) >= 0
 
-    if sgn_a > 0 and sgn_b > 0:
-        uadd(a, b, ans)
-    elif sgn_a > 0 and sgn_b < 0:
+    if sgn_a and sgn_b:
+        umul(a, b, ans)
+
+    elif sgn_a and not sgn_b:
         b[0] = -b[0]
         umul(a, b, ans)
+        print(f'ans antes de -ans: {ans}')
         ans[0] = -ans[0]
+        print(f'ans despues de -ans: {ans}')
         b[0] = -b[0]
 
-    elif sgn_a < 0 and sgn_b > 0:
+    elif not sgn_a and sgn_b:
         a[0] = -a[0]
         umul(a, b, ans)
         ans[0] = -ans[0]
         a[0] = -a[0]
 
-    elif sgn_a < 0 and sgn_b < 0:
+    elif not sgn_a and not sgn_b:
         a[0] = -a[0]
         b[0] = -b[0]
         uadd(a, b, ans)
@@ -116,9 +153,9 @@ def add(a, b, ans):
     sgn_a = np.int32(a[0]) >= 0
     sgn_b = np.int32(b[0]) >= 0
 
-    if sgn_a > 0 and sgn_b > 0:
+    if sgn_a and sgn_b:
         uadd(a, b, ans)
-    elif sgn_a > 0 and sgn_b < 0:
+    elif sgn_a and not sgn_b:
         b[0] = -b[0]
         if compare(a, b) >= 0:
             usub(a, b, ans)
@@ -128,7 +165,7 @@ def add(a, b, ans):
 
         b[0] = -b[0]
 
-    elif sgn_a < 0 and sgn_b > 0:
+    elif not sgn_a and sgn_b:
         a[0] = -a[0]
         if compare(a, b) >= 0:
             usub(a, b, ans)
@@ -138,7 +175,7 @@ def add(a, b, ans):
             usub(b, a, ans)
         a[0] = -a[0]
 
-    elif sgn_a < 0 and sgn_b < 0:
+    elif not sgn_a and sgn_b:
         a[0] = -a[0]
         b[0] = -b[0]
         uadd(a, b, ans)
@@ -149,9 +186,10 @@ def add(a, b, ans):
 
 def main():
     pi = np.array([3, 608135816, 2242054355], dtype=np.uint32)
+    minus_pi = np.array([-3, 608135816, 2242054355], dtype=np.uint32)
     print(pi)
     ans = np.zeros_like(pi, dtype=np.uint32)
-    add(pi, pi, ans)
+    add(pi, minus_pi, ans)
     print(ans)
     print(decode(ans))
 
