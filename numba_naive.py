@@ -46,9 +46,12 @@ def mandelbrot_naive_aux(ans, base, s, max_iters, t):
                 ans[j][i][1] = np.uint8(g)
                 ans[j][i][2] = np.uint8(b)
 
-
+@jit(nopython=True)
 def format_x(x):
-    return ('0000' + str(x))[-5:]
+    ans = str(x)
+    for i in range(5-len(ans)):
+        ans = "0" + ans
+    return ans
 
 @jit(nopython=True)
 def mandelbrot_naive(max_iters, ss, t=T, generate=False):
