@@ -184,10 +184,14 @@ def add(a, b, ans):
         b[0] = -b[0]
 
 
+# arithmetic shift
 def rsh(a, b, ans):
     n = len(a)
     ones = 2**32 - 1
     k = b % 32
+    was_negative = np.int32(a[0]) < 0
+    if was_negative:
+        a[0] = -a[0]
     for i in reversed(range(n)):
         l = i - (b + 31) // 32
         r = i - b // 32
@@ -196,6 +200,9 @@ def rsh(a, b, ans):
         sl = (al << (32 - k)) & ones
         sr = (ar >> k) & ones
         ans[i] = sl | sr
+    if was_negative:
+        ans[0] = -ans[0]
+        a[0] = -a[0]
 
 
 def main():
@@ -203,7 +210,7 @@ def main():
     minus_pi = np.array([-3, 608135816, 2242054355], dtype=np.uint32)
     print(pi)
     ans = np.zeros_like(pi, dtype=np.uint32)
-    rsh(pi, 64, ans)
+    rsh(minus_pi, 7, ans)
     print(ans)
     print(decode(ans))
 
