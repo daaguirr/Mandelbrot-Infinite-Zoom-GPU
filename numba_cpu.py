@@ -137,7 +137,7 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     batch = []
     for i, s in enumerate(ss):
         _s = cpu.encode(s, n)
-        mandelbrot_api_cpu(ans, base, _s, max_iters * (i - 1) * 50, t, n, X0, Y0)
+        mandelbrot_api_cpu(ans, base, _s, max_iters * (i - 1) * 50, t, n)
         batch += [(i, ans.copy())]
         if generate:
             print("Progress = %f" % (i * 100 / len(ss)))
