@@ -9,9 +9,10 @@ x0 = -0.7600189058857209
 y0 = -0.0799516080512771
 N = 10
 
-NEG_ONE = cpu.encode(-1, N)
-TWO = cpu.encode(2, N)
+ONE = cpu.encode(1, N)
 FORTH = cpu.encode(4, N)
+X0 = cpu.encode(x0, N)
+Y0 = cpu.encode(y0, N)
 
 
 def format_x(x):
@@ -27,10 +28,10 @@ def init_cpu(ans, indexes, t, n):
     tmp1 = np.zeros(n, dtype=np.uint32)
 
     for i in range(t):
-        cpu.mul(TWO, indexes[i], tmp)
+        cpu.umuli(indexes[i], 2, tmp)
         cpu.rsh(tmp, int(np.log2(T) + 0.5), tmp1)
         tmp.fill(0)
-        cpu.add(tmp1, NEG_ONE, tmp)
+        cpu.sub(tmp1, ONE, tmp)
         tmp1.fill(0)
 
         for k in range(n + 1):
@@ -38,20 +39,20 @@ def init_cpu(ans, indexes, t, n):
 
 
 @jit(nopython=True)
-def mandelbrot_api_cpu(ans, base, s, max_iters, t, n, X0, Y0):
+def mandelbrot_api_cpu(ans, base, s, max_iters, t, n):
     for i in range(t):
         for j in range(t):
 
-            tmp = np.zeros(n+1, dtype=np.uint32)
-            tmp1 = np.zeros(n+1, dtype=np.uint32)
-            tmp2 = np.zeros(n+1, dtype=np.uint32)
-            tmp3 = np.zeros(n+1, dtype=np.uint32)
+            tmp = np.zeros(n + 1, dtype=np.uint32)
+            tmp1 = np.zeros(n + 1, dtype=np.uint32)
+            tmp2 = np.zeros(n + 1, dtype=np.uint32)
+            tmp3 = np.zeros(n + 1, dtype=np.uint32)
 
-            cx = np.zeros(n+1, dtype=np.uint32)
-            cy = np.zeros(n+1, dtype=np.uint32)
+            cx = np.zeros(n + 1, dtype=np.uint32)
+            cy = np.zeros(n + 1, dtype=np.uint32)
 
-            zx = np.zeros(n+1, dtype=np.uint32)
-            zy = np.zeros(n+1, dtype=np.uint32)
+            zx = np.zeros(n + 1, dtype=np.uint32)
+            zy = np.zeros(n + 1, dtype=np.uint32)
 
             cpu.mul(base[i], s, tmp)  # s * (2 ix / T - 1)
             cpu.mul(base[j], s, tmp1)  # s * (2 iy / T - 1)
@@ -73,17 +74,15 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n, X0, Y0):
                     if iters > 0:
                         iters -= 1
                     break
-
                 tmp2.fill(0)
-                cpu.mul(tmp1, NEG_ONE, tmp2)  # -(zy * zy)
-                tmp1.fill(0)
-                cpu.add(tmp, tmp2, tmp1)  # zx * zx - zy * zy
+                cpu.sub(tmp, tmp1, tmp2)  # zx * zx - zy * zy
+
                 tmp.fill(0)
-                tmp2.fill(0)
-                cpu.add(tmp1, cx, tmp3)  # zx * zx - zy * zy + cx;
                 tmp1.fill(0)
+                cpu.add(tmp2, cx, tmp3)  # zx * zx - zy * zy + cx;
+                tmp2.fill(0)
 
-                cpu.mul(TWO, zx, tmp)  # 2 * zx
+                cpu.umuli(zx, 2, tmp)  # 2 * zx
                 cpu.mul(tmp, zy, tmp1)  # 2 * zx * zy
                 tmp.fill(0)
                 cpu.add(tmp1, cy, zy)  # 2 * zx * zy + cy
@@ -115,10 +114,9 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n, X0, Y0):
 
 
 def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
-    global NEG_ONE, NEG_ONE, FORTH
+    global ONE, FORTH, X0, Y0
 
-    NEG_ONE = cpu.encode(-1, N)
-    NEG_ONE = cpu.encode(2, N)
+    ONE = cpu.encode(1, N)
     FORTH = cpu.encode(4, N)
 
     X0 = cpu.encode(xt, n)
