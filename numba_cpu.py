@@ -24,10 +24,11 @@ def format_x(x):
 
 @jit(nopython=True)
 def init_cpu(ans, indexes, t, n):
-    tmp = np.zeros(n, dtype=np.uint32)
-    tmp1 = np.zeros(n, dtype=np.uint32)
+    tmp = np.zeros(n + 1, dtype=np.uint32)
+    tmp1 = np.zeros(n + 1, dtype=np.uint32)
 
     for i in range(t):
+        tmp.fill(0)
         cpu.umuli(indexes[i], 2, tmp)
         cpu.rsh(tmp, int(np.log2(T) + 0.5), tmp1)
         tmp.fill(0)
@@ -126,7 +127,8 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     indexes = [cpu.encode(i, n) for i in indexes]
     indexes = np.array(indexes, dtype=np.uint32)
 
-    base = np.zeros((t, n), dtype=np.uint32)
+    base = np.zeros((t, n + 1), dtype=np.uint32)
+
     init_cpu(base, indexes, t, n)
 
     ans = np.array((t, t, 3))
@@ -154,5 +156,6 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 
 if __name__ == '__main__':
     # experiment()
-    _ss = np.geomspace(0.000001, 1, 30)[::-1]
-    mandelbrot_cpu(100, _ss, T, generate=False)
+    # _ss = np.geomspace(0.000001, 1, 30)[::-1]
+    _ss = np.array([1], dtype=np.double)
+    mandelbrot_cpu(100, _ss, t=T, generate=False)
