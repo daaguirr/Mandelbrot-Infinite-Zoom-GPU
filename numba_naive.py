@@ -2,7 +2,7 @@ import time
 
 import imageio
 import numpy as np
-from numba import git
+from numba import jit
 import cpu as cpu
 
 T = 256
@@ -65,11 +65,15 @@ def mandelbrot_naive(max_iters, ss, t=T, generate=False):
         if generate:
             print("Progress = %f %" % (i * 100/len(ss)))
             if len(batch) == batch_size:
-                for imn, im in batch:
+                for ind in range(batch):
+                    imn = batch[ind][0]
+                    im = batch[ind][1]
                     imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
                 batch = []
         ans.fill(0)
-    for imn, im in batch:
+    for ind in range(batch):
+        imn = batch[ind][0]
+        im = batch[ind][1]
         imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
 
 def main():
