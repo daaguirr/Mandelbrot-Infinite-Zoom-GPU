@@ -36,20 +36,20 @@ def mandelbrot_naive_aux(ans, base, s, max_iters, t):
 
                 iters += 1
 
-            if iters < max_iters:
-                ans[j][i][0] = np.uint8(255)
-                ans[j][i][1] = np.uint8(255)
-                ans[j][i][2] = np.uint8(255)
+            #if iters < max_iters:
+            #    ans[j][i][0] = np.uint8(255)
+            #    ans[j][i][1] = np.uint8(255)
+            #    ans[j][i][2] = np.uint8(255)
             
-            #if zx * zx + zy * zy > 4.0:
-            #    ts = iters * 1.0 / max_iters
-            #    r = int(9 * (1 - ts) * ts * ts * ts * 255)
-            #    g = int(15 * (1 - ts) * (1 - ts) * ts * ts * 255)
-            #    b = int(8.5 * (1 - ts) * (1 - ts) * (1 - ts) * ts * 255)
-            #
-            #    ans[j][i][0] = np.uint8(r)
-            #    ans[j][i][1] = np.uint8(g)
-            #    ans[j][i][2] = np.uint8(b)
+            if zx * zx + zy * zy > 4.0:
+                ts = iters * 1.0 / max_iters
+                r = int(9 * (1 - ts) * ts * ts * ts * 255)
+                g = int(15 * (1 - ts) * (1 - ts) * ts * ts * 255)
+                b = int(8.5 * (1 - ts) * (1 - ts) * (1 - ts) * ts * 255)
+            
+                ans[j][i][0] = np.uint8(r)
+                ans[j][i][1] = np.uint8(g)
+                ans[j][i][2] = np.uint8(b)
 
 def format_x(x):
     ans = str(x)
@@ -66,7 +66,7 @@ def mandelbrot_naive(max_iters, ss, t=T, generate=False):
     batch_size = 100
     batch = []
     for i, s in enumerate(ss):
-        mandelbrot_naive_aux(ans, base, s, max_iters, t)
+        mandelbrot_naive_aux(ans, base, s, max_iters * (i - 1) * 50, t)
         batch += [(i,ans.copy())]
         if generate:
             print("Progress = %f" % (i * 100/len(ss)))
@@ -90,4 +90,4 @@ def main():
 if __name__ == '__main__':
     # experiment()
     _ss = np.geomspace(10e-30, 1, 240)[::-1]
-    mandelbrot_naive(400, _ss, T, generate=True)
+    mandelbrot_naive(200, _ss, T, generate=True)
