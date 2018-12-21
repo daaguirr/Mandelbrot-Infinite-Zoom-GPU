@@ -64,7 +64,7 @@ def mandelbrot_naive(max_iters, ss, t=T, generate=False):
         mandelbrot_naive_aux(ans, base, s, max_iters, t)
         batch += [(i,ans.copy())]
         if generate:
-            print("Progress = %f %" % (i * 100/len(ss)))
+            print("Progress = %f" % (i * 100/len(ss)))
             if len(batch) == batch_size:
                 for ind in range(len(batch)):
                     imn = batch[ind][0]
@@ -72,11 +72,10 @@ def mandelbrot_naive(max_iters, ss, t=T, generate=False):
                     imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
                 batch = []
         ans.fill(0)
-    if len(batch) == batch_size:
-        for ind in range(len(batch)):
-            imn = batch[ind][0]
-            im = batch[ind][1]
-            imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
+    for ind in range(len(batch)):
+        imn = batch[ind][0]
+        im = batch[ind][1]
+        imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
 
 def main():
     max_iters = 200
