@@ -5,7 +5,7 @@ import numpy as np
 from numba import jit
 import cpu as cpu
 
-T = 256
+T = 1024
 x0 = -0.7600189058857209
 y0 = -0.0799516080512771
 N = 10
@@ -46,14 +46,12 @@ def mandelbrot_naive_aux(ans, base, s, max_iters, t):
                 ans[j][i][1] = np.uint8(g)
                 ans[j][i][2] = np.uint8(b)
 
-@jit(nopython=True)
 def format_x(x):
     ans = str(x)
     for i in range(5-len(ans)):
         ans = "0" + ans
     return ans
 
-@jit(nopython=True)
 def mandelbrot_naive(max_iters, ss, t=T, generate=False):
     base = np.zeros(t, dtype=np.double)
     for i in range(t):
@@ -68,23 +66,24 @@ def mandelbrot_naive(max_iters, ss, t=T, generate=False):
         if generate:
             print("Progress = %f %" % (i * 100/len(ss)))
             if len(batch) == batch_size:
-                for ind in range(batch):
+                for ind in range(len(batch)):
                     imn = batch[ind][0]
                     im = batch[ind][1]
                     imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
                 batch = []
         ans.fill(0)
-    for ind in range(batch):
-        imn = batch[ind][0]
-        im = batch[ind][1]
-        imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
+    if len(batch) == batch_size:
+        for ind in range(len(batch)):
+            imn = batch[ind][0]
+            im = batch[ind][1]
+            imageio.imwrite("results/mandelbrot_cpu_naive_%d_%s.png" % (t,format_x(imn)), im)
 
 def main():
-    max_iters = 100
+    max_iters = 200
     ss = np.geomspace(0.0000000001, 1, 30)[::-1]
     mandelbrot_naive(max_iters, ss, T)
 
 if __name__ == '__main__':
     # experiment()
-    _ss = np.geomspace(0.000001, 1, 30)[::-1]
+    _ss = np.geomspace(0.000000001, 1, 60)[::-1]
     mandelbrot_naive(100, _ss, T, generate=True)
