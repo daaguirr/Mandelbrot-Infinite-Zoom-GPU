@@ -71,9 +71,8 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n):
                 cpu.mul(zy, zy, tmp1)  # zy * zy
 
                 cpu.add(tmp, tmp1, tmp2)
-                if cpu.compare(tmp2, FORTH) > 0:
-                    if iters > 0:
-                        iters -= 1
+                if cpu.compare(tmp2, FORTH) > 0 and iters > 0:
+                    iters -= 1
                     break
                 tmp2.fill(0)
                 cpu.sub(tmp, tmp1, tmp2)  # zx * zx - zy * zy
@@ -137,7 +136,7 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     batch = []
     for i, s in enumerate(ss):
         _s = cpu.encode(s, n)
-        mandelbrot_api_cpu(ans, base, _s, max_iters * (i - 1) * 50, t, n)
+        mandelbrot_api_cpu(ans, base, _s, max_iters + (i - 1) * 50, t, n)
         batch += [(i, ans.copy())]
         if generate:
             print("Progress = %f" % (i * 100 / len(ss)))
@@ -157,5 +156,5 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 if __name__ == '__main__':
     # experiment()
     # _ss = np.geomspace(0.000001, 1, 30)[::-1]
-    _ss = np.array([1], dtype=np.double)
+    _ss = np.array([1, 0.5], dtype=np.double)
     mandelbrot_cpu(100, _ss, t=T, generate=False)
