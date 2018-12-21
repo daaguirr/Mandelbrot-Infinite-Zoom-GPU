@@ -69,7 +69,7 @@ def mandelbrot_naive(max_iters, ss, t=T, generate=False):
     batch_size = 100
     batch = []
     for i, s in enumerate(ss):
-        mandelbrot_naive_aux(ans, base, s, max_iters * (i - 1) * 50, t)
+        mandelbrot_naive_aux(ans, base, s, max_iters + (i - 1) * 50, t)
         batch += [(i, ans.copy())]
         if generate:
             print("Progress = %f" % (i * 100 / len(ss)))
