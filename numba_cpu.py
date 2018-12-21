@@ -109,9 +109,9 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n):
                 g = int(15 * (1 - ts) * (1 - ts) * ts * ts * 255)
                 b = int(8.5 * (1 - ts) * (1 - ts) * (1 - ts) * ts * 255)
 
-                ans[j][i][0] = r
-                ans[j][i][1] = g
-                ans[j][i][2] = b
+                ans[j][i][0] = np.uint8(r)
+                ans[j][i][1] = np.uint8(g)
+                ans[j][i][2] = np.uint8(b)
 
 
 def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
@@ -131,7 +131,7 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 
     init_cpu(base, indexes, t, n)
 
-    ans = np.array((t, t, 3))
+    ans = np.zeros((t, t, 3), dtype=np.uint8)
 
     batch_size = 100
     batch = []
