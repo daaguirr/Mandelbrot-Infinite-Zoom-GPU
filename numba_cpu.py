@@ -42,16 +42,16 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n, X0, Y0):
     for i in range(t):
         for j in range(t):
 
-            tmp = np.zeros(n, dtype=np.uint32)
-            tmp1 = np.zeros(n, dtype=np.uint32)
-            tmp2 = np.zeros(n, dtype=np.uint32)
-            tmp3 = np.zeros(n, dtype=np.uint32)
+            tmp = np.zeros(n+1, dtype=np.uint32)
+            tmp1 = np.zeros(n+1, dtype=np.uint32)
+            tmp2 = np.zeros(n+1, dtype=np.uint32)
+            tmp3 = np.zeros(n+1, dtype=np.uint32)
 
-            cx = np.zeros(n, dtype=np.uint32)
-            cy = np.zeros(n, dtype=np.uint32)
+            cx = np.zeros(n+1, dtype=np.uint32)
+            cy = np.zeros(n+1, dtype=np.uint32)
 
-            zx = np.zeros(n, dtype=np.uint32)
-            zy = np.zeros(n, dtype=np.uint32)
+            zx = np.zeros(n+1, dtype=np.uint32)
+            zy = np.zeros(n+1, dtype=np.uint32)
 
             cpu.mul(base[i], s, tmp)  # s * (2 ix / T - 1)
             cpu.mul(base[j], s, tmp1)  # s * (2 iy / T - 1)
