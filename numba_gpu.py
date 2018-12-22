@@ -168,7 +168,6 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
             d_ans.to_host()
             batch += [(i, ans.copy())]
 
-            pdb.set_trace()
             print("Progress = %f" % (i * 100 / len(ss)))
             if len(batch) == batch_size:
                 for ind in range(len(batch)):
