@@ -109,20 +109,92 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n, X0, Y0, FOUR):
     fill_zeros(tmp)
     fill_zeros(tmp1)
     fill_zeros(tmp2)
+    
 
-    gpu.mul(zx, zx, tmp)  # zx * zx
-    gpu.mul(zy, zy, tmp1)  # zy * zy
+    if iters < max_iters:
+        #ans[j][i][0] = np.uint8(255)
+        #ans[j][i][1] = np.uint8(255)
+        #ans[j][i][2] = np.uint8(255)
+        nit = iters % 16
+        if  nit == 0 :
+        	ans[j][i][0] = np.uint8(66)
+        	ans[j][i][1] = np.uint8(30)
+        	ans[j][i][2] = np.uint8(15)
+        if  nit == 1 :
+        	ans[j][i][0] = np.uint8(25)
+        	ans[j][i][1] = np.uint8(7)
+        	ans[j][i][2] = np.uint8(26)
+        if  nit == 2 :
+        	ans[j][i][0] = np.uint8(9)
+        	ans[j][i][1] = np.uint8(1)
+        	ans[j][i][2] = np.uint8(47)
+        if  nit == 3 :
+        	ans[j][i][0] = np.uint8(4)
+        	ans[j][i][1] = np.uint8(4)
+        	ans[j][i][2] = np.uint8(73)
+        if  nit == 4 :
+        	ans[j][i][0] = np.uint8(0)
+        	ans[j][i][1] = np.uint8(7)
+        	ans[j][i][2] = np.uint8(100)
+        if  nit == 5 :
+        	ans[j][i][0] = np.uint8(12)
+        	ans[j][i][1] = np.uint8(44)
+        	ans[j][i][2] = np.uint8(138)
+        if  nit == 6 :
+        	ans[j][i][0] = np.uint8(24)
+        	ans[j][i][1] = np.uint8(82)
+        	ans[j][i][2] = np.uint8(177)
+        if  nit == 7 :
+        	ans[j][i][0] = np.uint8(57)
+        	ans[j][i][1] = np.uint8(125)
+        	ans[j][i][2] = np.uint8(209)
+        if  nit == 8 :
+        	ans[j][i][0] = np.uint8(134)
+        	ans[j][i][1] = np.uint8(181)
+        	ans[j][i][2] = np.uint8(229)
+        if  nit == 9 :
+        	ans[j][i][0] = np.uint8(211)
+        	ans[j][i][1] = np.uint8(236)
+        	ans[j][i][2] = np.uint8(248)
+        if  nit == 10 :
+        	ans[j][i][0] = np.uint8(241)
+        	ans[j][i][1] = np.uint8(233)
+        	ans[j][i][2] = np.uint8(191)
+        if  nit == 11 :
+        	ans[j][i][0] = np.uint8(248)
+        	ans[j][i][1] = np.uint8(201)
+        	ans[j][i][2] = np.uint8(95)
+        if  nit == 12 :
+        	ans[j][i][0] = np.uint8(255)
+        	ans[j][i][1] = np.uint8(170)
+        	ans[j][i][2] = np.uint8(0)
+        if  nit == 13 :
+        	ans[j][i][0] = np.uint8(204)
+        	ans[j][i][1] = np.uint8(128)
+        	ans[j][i][2] = np.uint8(0)
+        if  nit == 14 :
+        	ans[j][i][0] = np.uint8(153)
+        	ans[j][i][1] = np.uint8(87)
+        	ans[j][i][2] = np.uint8(0)
+        if  nit == 15 :
+        	ans[j][i][0] = np.uint8(106)
+        	ans[j][i][1] = np.uint8(52)
+        	ans[j][i][2] = np.uint8(3)
+    #gpu.mul(zx, zx, tmp)  # zx * zx
+    
+    #gpu.mul(zy, zy, tmp1)  # zy * zy
 
-    gpu.add(tmp, tmp1, tmp2)
-    if gpu.compare(tmp2, FOUR) > 0:
-        ts = iters * 1.0 / max_iters
-        r = int(9 * (1 - ts) * ts * ts * ts * 255)
-        g = int(15 * (1 - ts) * (1 - ts) * ts * ts * 255)
-        b = int(8.5 * (1 - ts) * (1 - ts) * (1 - ts) * ts * 255)
-
-        ans[j][i][0] = np.uint8(r)
-        ans[j][i][1] = np.uint8(g)
-        ans[j][i][2] = np.uint8(b)
+    #gpu.add(tmp, tmp1, tmp2)
+    #if gpu.compare(tmp2, FOUR) > 0:
+    #    ts = iters * 1.0 / max_iters
+    #    r = int(9 * (1 - ts) * ts * ts * ts * 255)
+    #    g = int(15 * (1 - ts) * (1 - ts) * ts * ts * 255)
+    #    b = int(8.5 * (1 - ts) * (1 - ts) * (1 - ts) * ts * 255)
+    
+    #
+    #    ans[j][i][0] = np.uint8(r)
+    #    ans[j][i][1] = np.uint8(g)
+    #    ans[j][i][2] = np.uint8(b)
 
 
 def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
@@ -131,6 +203,9 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 
     X0 = cuda.to_device(cpu.encode(xt, n))
     Y0 = cuda.to_device(cpu.encode(yt, n))
+
+    #X0 = cuda.to_device(np.array([0, 889521515,3920901292,2551795869,690843754,1095124392,3810045335,2280915385,3933404175,116643750, 1], dtype=np.uint32))
+    #Y0 = cuda.to_device(np.array([1,527237573,2813191363,3485787269,718281163,2930215389,2988428924,1688274651,3514889844,4244049646, 1], dtype=np.uint32))
 
     grid_n = math.ceil(t / BLOCK_SIZE)
 
@@ -182,6 +257,6 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 
 if __name__ == '__main__':
     # experiment()
-    # _ss = np.geomspace(0.000001, 1, 30)[::-1]
-    _ss = np.array([1, 0.5], dtype=np.double)
-    mandelbrot_gpu(100, _ss, t=T, generate=True)
+    _ss = np.geomspace(10e-30, 1, 240)[::-1]
+    #_ss = np.array([1, 0.5], dtype=np.double)
+    mandelbrot_gpu(2000, _ss, t=T, generate=True)
