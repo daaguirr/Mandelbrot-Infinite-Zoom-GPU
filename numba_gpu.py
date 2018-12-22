@@ -4,6 +4,7 @@ import imageio
 import numpy as np
 from numba import cuda
 import numba
+import pdb
 
 import cpu
 import gpu as gpu
@@ -141,11 +142,15 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     indexes = range(t)
     indexes = [cpu.encode(i, n) for i in indexes]
     indexes = np.array(indexes, dtype=np.uint32)
+    d_indexes = cuda.to_device(indexes)
 
     base = np.zeros((t, n + 1), dtype=np.uint32)
     d_base = cuda.to_device(base)
 
-    init_gpu[(t,), (1,)](base, indexes, ONE, t, n)
+    init_gpu[(t,), (1,)](d_base, d_indexes, ONE, t, n)
+
+    d_base.to_host()
+    print(base)
 
     ans = np.zeros((t, t, 3), dtype=np.uint8)
     d_ans = cuda.to_device(ans)
@@ -161,7 +166,7 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
         if generate:
             d_ans.to_host()
             batch += [(i, ans.copy())]
-            import pdb
+
             pdb.set_trace()
             print("Progress = %f" % (i * 100 / len(ss)))
             if len(batch) == batch_size:
