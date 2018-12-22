@@ -14,11 +14,6 @@ x0 = -0.7600189058857209
 y0 = -0.0799516080512771
 BLOCK_SIZE = 32
 
-ONE = None
-FOUR = None
-X0 = None
-Y0 = None
-
 
 def format_x(x):
     ans = str(x)
@@ -28,7 +23,7 @@ def format_x(x):
 
 
 @cuda.jit
-def init_gpu(ans, indexes, t, n):
+def init_gpu(ans, indexes, ONE, t, n):
     tmp = cuda.local.array(NN, numba.uint32)
     tmp1 = cuda.local.array(NN, numba.uint32)
     i = cuda.grid(1)
@@ -45,7 +40,7 @@ def init_gpu(ans, indexes, t, n):
 
 
 @cuda.jit(nopython=True)
-def mandelbrot_api_gpu(ans, base, s, max_iters, t, n):
+def mandelbrot_api_gpu(ans, base, s, max_iters, t, n, X0, Y0, FOUR):
     i, j = cuda.grid(2)
 
     ans[j][i][0] = np.uint8(0)
@@ -126,11 +121,11 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n):
 def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     global ONE, FOUR, X0, Y0
 
-    ONE = cuda.const.array_like(cpu.encode(1, n))
-    FOUR = cuda.const.array_like(cpu.encode(4, n))
+    ONE = cuda.to_device(cpu.encode(1, n))
+    FOUR = cuda.to_device(cpu.encode(4, n))
 
-    X0 = cuda.const.array_like(cpu.encode(xt, n))
-    Y0 = cuda.const.array_like(cpu.encode(yt, n))
+    X0 = cuda.to_device(cpu.encode(xt, n))
+    Y0 = cuda.to_device(cpu.encode(yt, n))
 
     grid_n = math.ceil(t / BLOCK_SIZE)
 
@@ -152,7 +147,7 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
         _s = cpu.encode(s, n)
         d_s = cuda.to_device(_s)
         mandelbrot_api_gpu[(BLOCK_SIZE, BLOCK_SIZE), (grid_n, grid_n)](d_ans, d_base, d_s, max_iters + (i - 1) * 50, t,
-                                                                       n)
+                                                                       n, X0, Y0, FOUR)
 
         if generate:
             d_ans.to_host()
