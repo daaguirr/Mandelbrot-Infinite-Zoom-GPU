@@ -7,11 +7,11 @@ import numba
 
 import cpu
 import gpu as gpu
+from utils import fill_zeros, copy, N, NN
 
 T = 256
 x0 = -0.7600189058857209
 y0 = -0.0799516080512771
-N = 10
 BLOCK_SIZE = 32
 
 ONE = None
@@ -29,17 +29,18 @@ def format_x(x):
 
 @cuda.jit
 def init_gpu(ans, indexes, t, n):
-    tmp = cuda.local.array(N + 1, numba.uint32)
-    tmp1 = cuda.local.array(N + 1, numba.uint32)
+    tmp = cuda.local.array(NN, numba.uint32)
+    tmp1 = cuda.local.array(NN, numba.uint32)
     i = cuda.grid(1)
-    tmp.fill(0)
+
+    fill_zeros(tmp)
     gpu.umuli(indexes[i], 2, tmp)
     gpu.rsh(tmp, int(np.log2(T) + 0.5), tmp1)
-    tmp.fill(0)
+    fill_zeros(tmp)
     gpu.sub(tmp1, ONE, tmp)
-    tmp1.fill(0)
+    fill_zeros(tmp1)
 
-    for k in range(N + 1):
+    for k in range(NN):
         ans[i][k] = tmp[k]
 
 
@@ -51,16 +52,16 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n):
     ans[j][i][1] = np.uint8(0)
     ans[j][i][2] = np.uint8(0)
 
-    tmp = cuda.local.array(N + 1, numba.uint32)
-    tmp1 = cuda.local.array(N + 1, numba.uint32)
-    tmp2 = cuda.local.array(N + 1, numba.uint32)
-    tmp3 = cuda.local.array(N + 1, numba.uint32)
+    tmp = cuda.local.array(NN, numba.uint32)
+    tmp1 = cuda.local.array(NN, numba.uint32)
+    tmp2 = cuda.local.array(NN, numba.uint32)
+    tmp3 = cuda.local.array(NN, numba.uint32)
 
-    cx = cuda.local.array(N + 1, numba.uint32)
-    cy = cuda.local.array(N + 1, numba.uint32)
+    cx = cuda.local.array(NN, numba.uint32)
+    cy = cuda.local.array(NN, numba.uint32)
 
-    zx = cuda.local.array(N + 1, numba.uint32)
-    zy = cuda.local.array(N + 1, numba.uint32)
+    zx = cuda.local.array(NN, numba.uint32)
+    zy = cuda.local.array(NN, numba.uint32)
 
     gpu.mul(base[i], s, tmp)  # s * (2 ix / T - 1)
     gpu.mul(base[j], s, tmp1)  # s * (2 iy / T - 1)
@@ -68,8 +69,8 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n):
     gpu.add(tmp, X0, cx)  # s * (2 iy / T - 1) + x0
     gpu.add(tmp1, Y0, cy)  # s * (2 ix / T - 1) + x0
 
-    tmp.fill(0)
-    tmp1.fill(0)
+    fill_zeros(tmp)
+    fill_zeros(tmp1)
 
     iters = 0
 
@@ -81,29 +82,31 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n):
         if gpu.compare(tmp2, FOUR) > 0 and iters > 0:
             iters -= 1
             break
-        tmp2.fill(0)
+        fill_zeros(tmp2)
         gpu.sub(tmp, tmp1, tmp2)  # zx * zx - zy * zy
 
-        tmp.fill(0)
-        tmp1.fill(0)
+        fill_zeros(tmp)
+        fill_zeros(tmp1)
         gpu.add(tmp2, cx, tmp3)  # zx * zx - zy * zy + cx;
-        tmp2.fill(0)
+        fill_zeros(tmp2)
 
         gpu.umuli(zx, 2, tmp)  # 2 * zx
         gpu.mul(tmp, zy, tmp1)  # 2 * zx * zy
-        tmp.fill(0)
+        fill_zeros(tmp)
         gpu.add(tmp1, cy, zy)  # 2 * zx * zy + cy
 
         zx = tmp3.copy()
 
-        tmp1.fill(0)
-        tmp3.fill(0)
+        copy(tmp3, zx)
+
+        fill_zeros(tmp1)
+        fill_zeros(tmp3)
 
         iters += 1
 
-    tmp.fill(0)
-    tmp1.fill(0)
-    tmp2.fill(0)
+    fill_zeros(tmp)
+    fill_zeros(tmp1)
+    fill_zeros(tmp2)
 
     gpu.mul(zx, zx, tmp)  # zx * zx
     gpu.mul(zy, zy, tmp1)  # zy * zy
@@ -123,22 +126,22 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n):
 def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     global ONE, FOUR, X0, Y0
 
-    ONE = cuda.const.array_like(gpu.encode(1, n))
-    FOUR = cuda.const.array_like(gpu.encode(4, n))
+    ONE = cuda.const.array_like(cpu.encode(1, n))
+    FOUR = cuda.const.array_like(cpu.encode(4, n))
 
-    X0 = cuda.const.array_like(gpu.encode(xt, n))
-    Y0 = cuda.const.array_like(gpu.encode(yt, n))
+    X0 = cuda.const.array_like(cpu.encode(xt, n))
+    Y0 = cuda.const.array_like(cpu.encode(yt, n))
 
     grid_n = math.ceil(t / BLOCK_SIZE)
 
     indexes = range(t)
-    indexes = [gpu.encode(i, n) for i in indexes]
+    indexes = [cpu.encode(i, n) for i in indexes]
     indexes = np.array(indexes, dtype=np.uint32)
 
     base = np.zeros((t, n + 1), dtype=np.uint32)
     d_base = cuda.to_device(base)
 
-    init_gpu(base, indexes, t, n)
+    init_gpu[(t,), (1,)](base, indexes, t, n)
 
     ans = np.zeros((t, t, 3), dtype=np.uint8)
     d_ans = cuda.to_device(ans)
