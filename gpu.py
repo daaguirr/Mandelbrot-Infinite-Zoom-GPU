@@ -17,7 +17,7 @@ def uadd(a, b, ans):
 @cuda.jit(device=True)
 def usub(a, b, ans):
     aux = cuda.local.array(NN, numba.uint32)
-    copy(a, aux)
+    copy(b, aux)
     i = N - 1
     while i >= 0 and b[i] == 0:
         aux[i] = ones
@@ -42,10 +42,6 @@ def compare(a, b):
     if a[N] != b[N]:
         return np.int64(b[N]) - np.int64(a[N])
     return ucompare(a, b)
-
-
-# tested until here ^^^
-# test pending from here vvv
 
 
 @cuda.jit(device=True)

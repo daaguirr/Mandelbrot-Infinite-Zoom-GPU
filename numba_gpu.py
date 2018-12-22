@@ -31,6 +31,7 @@ def init_gpu(ans, indexes, ONE, t, n):
     i = cuda.grid(1)
 
     fill_zeros(tmp)
+    fill_zeros(tmp1)
     gpu.umuli(indexes[i], 2, tmp)
     gpu.rsh(tmp, log2T, tmp1)
     fill_zeros(tmp)
