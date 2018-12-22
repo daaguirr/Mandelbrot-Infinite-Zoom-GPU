@@ -294,8 +294,8 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 
     init_gpu[(t,), (1,)](d_base, d_indexes, ONE, t, n)
 
-    d_base.to_host()
-    print(base)
+    #d_base.to_host()
+    #print(base)
 
     ans = np.zeros((t, t, 3), dtype=np.uint8)
     d_ans = cuda.to_device(ans)
