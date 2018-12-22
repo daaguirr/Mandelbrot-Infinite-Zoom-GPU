@@ -358,3 +358,5 @@ def experiment():
                 file.write(f"{t},{n},{1},{len(ss) / delta}\n".encode('utf8'))
                 file.flush()
                 count += 1
+
+experiment()
