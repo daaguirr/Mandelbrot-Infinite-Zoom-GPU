@@ -13,6 +13,7 @@ T = 256
 x0 = -0.7600189058857209
 y0 = -0.0799516080512771
 BLOCK_SIZE = 32
+log2T = int(np.log2(T) + 0.5)
 
 
 def format_x(x):
@@ -30,7 +31,7 @@ def init_gpu(ans, indexes, ONE, t, n):
 
     fill_zeros(tmp)
     gpu.umuli(indexes[i], 2, tmp)
-    gpu.rsh(tmp, int(np.log2(T) + 0.5), tmp1)
+    gpu.rsh(tmp, log2T, tmp1)
     fill_zeros(tmp)
     gpu.sub(tmp1, ONE, tmp)
     fill_zeros(tmp1)
@@ -39,7 +40,7 @@ def init_gpu(ans, indexes, ONE, t, n):
         ans[i][k] = tmp[k]
 
 
-@cuda.jit(nopython=True)
+@cuda.jit
 def mandelbrot_api_gpu(ans, base, s, max_iters, t, n, X0, Y0, FOUR):
     i, j = cuda.grid(2)
 
@@ -52,11 +53,21 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n, X0, Y0, FOUR):
     tmp2 = cuda.local.array(NN, numba.uint32)
     tmp3 = cuda.local.array(NN, numba.uint32)
 
+    fill_zeros(tmp)
+    fill_zeros(tmp1)
+    fill_zeros(tmp2)
+    fill_zeros(tmp3)
+
     cx = cuda.local.array(NN, numba.uint32)
     cy = cuda.local.array(NN, numba.uint32)
 
     zx = cuda.local.array(NN, numba.uint32)
     zy = cuda.local.array(NN, numba.uint32)
+
+    fill_zeros(cx)
+    fill_zeros(cy)
+    fill_zeros(zx)
+    fill_zeros(zy)
 
     gpu.mul(base[i], s, tmp)  # s * (2 ix / T - 1)
     gpu.mul(base[j], s, tmp1)  # s * (2 iy / T - 1)
@@ -90,7 +101,7 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n, X0, Y0, FOUR):
         fill_zeros(tmp)
         gpu.add(tmp1, cy, zy)  # 2 * zx * zy + cy
 
-        zx = tmp3.copy()
+        # zx = tmp3.copy()
 
         copy(tmp3, zx)
 
@@ -119,8 +130,6 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, t, n, X0, Y0, FOUR):
 
 
 def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
-    global ONE, FOUR, X0, Y0
-
     ONE = cuda.to_device(cpu.encode(1, n))
     FOUR = cuda.to_device(cpu.encode(4, n))
 
@@ -136,7 +145,7 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     base = np.zeros((t, n + 1), dtype=np.uint32)
     d_base = cuda.to_device(base)
 
-    init_gpu[(t,), (1,)](base, indexes, t, n)
+    init_gpu[(t,), (1,)](base, indexes, ONE, t, n)
 
     ans = np.zeros((t, t, 3), dtype=np.uint8)
     d_ans = cuda.to_device(ans)
@@ -152,6 +161,8 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
         if generate:
             d_ans.to_host()
             batch += [(i, ans.copy())]
+            import pdb
+            pdb.set_trace()
             print("Progress = %f" % (i * 100 / len(ss)))
             if len(batch) == batch_size:
                 for ind in range(len(batch)):
@@ -170,4 +181,4 @@ if __name__ == '__main__':
     # experiment()
     # _ss = np.geomspace(0.000001, 1, 30)[::-1]
     _ss = np.array([1, 0.5], dtype=np.double)
-    mandelbrot_gpu(100, _ss, t=T, generate=False)
+    mandelbrot_gpu(100, _ss, t=T, generate=True)
