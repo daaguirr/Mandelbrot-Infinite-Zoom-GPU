@@ -10,7 +10,7 @@ y0 = -0.0799516080512771
 N = 10
 
 ONE = cpu.encode(1, N)
-FORTH = cpu.encode(4, N)
+FOUR = cpu.encode(4, N)
 X0 = cpu.encode(x0, N)
 Y0 = cpu.encode(y0, N)
 
@@ -71,7 +71,7 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n):
                 cpu.mul(zy, zy, tmp1)  # zy * zy
 
                 cpu.add(tmp, tmp1, tmp2)
-                if cpu.compare(tmp2, FORTH) > 0 and iters > 0:
+                if cpu.compare(tmp2, FOUR) > 0 and iters > 0:
                     iters -= 1
                     break
                 tmp2.fill(0)
@@ -102,7 +102,7 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n):
             cpu.mul(zy, zy, tmp1)  # zy * zy
 
             cpu.add(tmp, tmp1, tmp2)
-            if cpu.compare(tmp2, FORTH) > 0:
+            if cpu.compare(tmp2, FOUR) > 0:
                 ts = iters * 1.0 / max_iters
                 r = int(9 * (1 - ts) * ts * ts * ts * 255)
                 g = int(15 * (1 - ts) * (1 - ts) * ts * ts * 255)
@@ -114,7 +114,7 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n):
 
 
 def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
-    global ONE, FORTH, X0, Y0
+    global ONE, FOUR, X0, Y0
 
     ONE = cpu.encode(1, N)
     FORTH = cpu.encode(4, N)
@@ -147,10 +147,11 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
                     imageio.imwrite("results/mandelbrot_cpu_%d_%d_%s.png" % (t, n, format_x(imn)), im)
                 batch = []
         ans.fill(0)
-    for ind in range(len(batch)):
-        imn = batch[ind][0]
-        im = batch[ind][1]
-        imageio.imwrite("results/mandelbrot_cpu_%d_%d_%s.png" % (t, n, format_x(imn)), im)
+    if generate:
+        for ind in range(len(batch)):
+            imn = batch[ind][0]
+            im = batch[ind][1]
+            imageio.imwrite("results/mandelbrot_cpu_%d_%d_%s.png" % (t, n, format_x(imn)), im)
 
 
 if __name__ == '__main__':
