@@ -1,20 +1,13 @@
 import math
 
 import imageio
+import numba
 import numpy as np
 from numba import cuda
-import numba
-import pdb
 
 import cpu
 import gpu as gpu
-from utils import fill_zeros, copy, N, NN
-
-T = 256
-x0 = -0.7600189058857209
-y0 = -0.0799516080512771
-BLOCK_SIZE = 32
-log2T = int(np.log2(T) + 0.5)
+from utils import fill_zeros, copy, N, NN, log2T, T, x0, y0, BLOCK_SIZE
 
 
 def format_x(x):

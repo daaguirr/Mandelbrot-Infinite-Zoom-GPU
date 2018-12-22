@@ -3,16 +3,12 @@ import numpy as np
 from numba import jit
 
 import cpu as cpu
+from utils import N, T, x0, y0
 
-T = 256
-x0 = -0.7600189058857209
-y0 = -0.0799516080512771
-N = 10
-
-ONE = cpu.encode(1, N)
-FOUR = cpu.encode(4, N)
-X0 = cpu.encode(x0, N)
-Y0 = cpu.encode(y0, N)
+ONE = None
+FOUR = None
+X0 = None
+Y0 = None
 
 
 def format_x(x):
@@ -116,8 +112,8 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n):
 def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     global ONE, FOUR, X0, Y0
 
-    ONE = cpu.encode(1, N)
-    FORTH = cpu.encode(4, N)
+    ONE = cpu.encode(1, n)
+    FOUR = cpu.encode(4, n)
 
     X0 = cpu.encode(xt, n)
     Y0 = cpu.encode(yt, n)
@@ -136,7 +132,8 @@ def mandelbrot_cpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     batch = []
     for i, s in enumerate(ss):
         _s = cpu.encode(s, n)
-        mandelbrot_api_cpu(ans, base, _s, max_iters + (i - 1) * 50, t, n)
+        # mandelbrot_api_cpu(ans, base, _s, max_iters + (i - 1) * 50, t, n)
+        mandelbrot_api_cpu(ans, base, _s, max_iters, t, n)
         batch += [(i, ans.copy())]
         if generate:
             print("Progress = %f" % (i * 100 / len(ss)))
