@@ -201,12 +201,17 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     ONE = cuda.to_device(cpu.encode(1, n))
     FOUR = cuda.to_device(cpu.encode(4, n))
 
-    X0 = cuda.to_device(cpu.encode(xt, n))
-    Y0 = cuda.to_device(cpu.encode(yt, n))
+    #X0 = cuda.to_device(cpu.encode(xt, n))
+    #Y0 = cuda.to_device(cpu.encode(yt, n))
 
     #X0 = cuda.to_device(np.array([0, 889521515,3920901292,2551795869,690843754,1095124392,3810045335,2280915385,3933404175,116643750, 1], dtype=np.uint32))
     #Y0 = cuda.to_device(np.array([1,527237573,2813191363,3485787269,718281163,2930215389,2988428924,1688274651,3514889844,4244049646, 1], dtype=np.uint32))
-
+    X0 = cuda.to_device(np.array([         1, 3178543730,  764955228, 1653432584, 1289000324,
+       1853942647, 1801344735, 4044992822, 2925897450, 3614139489,
+                1], dtype=np.uint32))
+    Y0 = cuda.to_device(np.array([         0,  121012162, 3888660452, 2098384151, 2824235263,
+        553223273, 1987301639, 1103228041,  141260832, 3674123863,
+                1], dtype=np.uint32))
     grid_n = math.ceil(t / BLOCK_SIZE)
 
     base = np.zeros(t, dtype=np.double)
@@ -257,6 +262,6 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 
 if __name__ == '__main__':
     # experiment()
-    _ss = np.geomspace(10e-30, 1, 240)[::-1]
+    _ss = np.geomspace(10e-60, 1, 900, dtype=np.double)[::-1]
     #_ss = np.array([1, 0.5], dtype=np.double)
     mandelbrot_gpu(2000, _ss, t=T, generate=True)
