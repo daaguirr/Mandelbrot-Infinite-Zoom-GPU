@@ -11,7 +11,20 @@ def encode(x, n):
     sign_bit = np.uint32(x < 0)
     x = abs(x)
 
-    ans = np.empty(n+1, dtype=np.uint32)
+    ans = np.empty(n + 1, dtype=np.uint32)
+    for i in range(n):
+        ans[i] = np.uint32(x)
+        x = (x - np.uint32(x)) * w
+
+    ans[n] = sign_bit
+    return ans
+
+
+def naive_encode(x, n):
+    sign_bit = np.uint32(x < 0)
+    x = abs(x)
+
+    ans = np.empty(n + 1, dtype=np.uint32)
     for i in range(n):
         ans[i] = np.uint32(x)
         x = (x - np.uint32(x)) * w

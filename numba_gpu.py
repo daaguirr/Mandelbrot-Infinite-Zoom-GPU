@@ -160,8 +160,8 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, X0, Y0, FOUR):
 def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     FOUR = cuda.to_device(cpu.encode(4, n))
 
-    X0 = cuda.to_device(cpu.encode(xt, n))
-    Y0 = cuda.to_device(cpu.encode(yt, n))
+    X0 = cuda.to_device(cpu.naive_encode(xt, n))
+    Y0 = cuda.to_device(cpu.naive_encode(yt, n))
 
     grid_n = math.ceil(t / BLOCK_SIZE)
 
@@ -179,7 +179,7 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
     batch = []
     for i, s in enumerate(ss):
         d_s = cuda.to_device(s)
-        mandelbrot_api_gpu[(BLOCK_SIZE, BLOCK_SIZE), (grid_n, grid_n)](d_ans, d_base, d_s, max_iters + (i - 1) * 50, t,
+        mandelbrot_api_gpu[(BLOCK_SIZE, BLOCK_SIZE), (grid_n, grid_n)](d_ans, d_base, d_s, max_iters + (i - 1) * 25, t,
                                                                        n, X0, Y0, FOUR)
 
         if generate:
@@ -214,4 +214,4 @@ if __name__ == '__main__':
 
 
     _ss = it(k=2)
-    mandelbrot_gpu(2000, _ss, t=T, generate=True)
+    mandelbrot_gpu(200, _ss, t=T, generate=True)
