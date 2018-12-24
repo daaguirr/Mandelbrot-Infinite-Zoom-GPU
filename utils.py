@@ -5,8 +5,8 @@ from mpmath import mp
 
 mp.dps = 300
 
-N = 15
-NN = 16
+N = 31
+NN = 32
 BITS = 32
 w = np.uint64(1 << 32)
 ones = np.uint32(w - 1)

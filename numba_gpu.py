@@ -1,4 +1,5 @@
 import math
+import threading
 
 import imageio
 import numba
@@ -157,7 +158,8 @@ def mandelbrot_api_gpu(ans, base, s, max_iters, X0, Y0, FOUR):
             ans[j][i][2] = np.uint8(3)
 
 
-def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
+def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False, did=0):
+    cuda.select_device(did)
     FOUR = cuda.to_device(cpu.encode(4, n))
 
     X0 = cuda.to_device(cpu.naive_encode(xt, n))
@@ -177,9 +179,10 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
 
     batch_size = 100
     batch = []
-    for i, (k,s) in enumerate(ss):
+    for i, (k, s) in enumerate(ss):
         d_s = cuda.to_device(s)
-        mandelbrot_api_gpu[(BLOCK_SIZE, BLOCK_SIZE), (grid_n, grid_n)](d_ans, d_base, d_s, max_iters + (i - 1) * 25, X0, Y0, FOUR)
+        mandelbrot_api_gpu[(BLOCK_SIZE, BLOCK_SIZE), (grid_n, grid_n)](d_ans, d_base, d_s, max_iters + (i - 1) * 15, X0,
+                                                                       Y0, FOUR)
 
         if generate:
             d_ans.to_host()
@@ -199,18 +202,32 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False):
             imageio.imwrite("results/mandelbrot_gpu_%d_%d_%s.png" % (t, n, format_x(imn)), im)
 
 
-if __name__ == '__main__':
-    # experiment()
-    def it(k, p=0.756242513):
-        s = cpu.encode(1, N)
-        tmp = np.zeros_like(s)
-        speed = cpu.encode(p, N)
-        for _ in range(k):
-            yield k,s
+def it(k, start, step, p=0.756242513):
+    s = cpu.encode(1, N)
+    tmp = np.zeros_like(s)
+    speed = cpu.encode(p, N)
+    for _ in range(start):
+        cpu.mul(s, speed, tmp)
+        s = tmp.copy()
+        tmp.fill(0)
+
+    for _ in range(k):
+        yield k, s
+        for _ in range(step):
             cpu.mul(s, speed, tmp)
             s = tmp.copy()
             tmp.fill(0)
 
 
-    _ss = it(k=900*3)
-    mandelbrot_gpu(200, _ss, t=T, generate=True)
+if __name__ == '__main__':
+    # experiment()
+
+    children = []
+    for cid, dev in enumerate(cuda.list_devices()):
+        thr = threading.Thread(target=mandelbrot_gpu,
+                               args=(200, it(1000, cid, len(cuda.list_devices()), p=0.9), N, T, x0, y0, True, cid))
+        thr.start()
+        children.append(thr)
+
+    for thr in children:
+        thr.join()
