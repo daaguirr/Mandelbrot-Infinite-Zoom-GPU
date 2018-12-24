@@ -179,14 +179,14 @@ def mandelbrot_gpu(max_iters, ss, n=N, t=T, xt=x0, yt=y0, generate=False, did=0)
 
     batch_size = 100
     batch = []
-    for i, (k, s) in enumerate(ss):
+    for i, count, k, s in ss:
         d_s = cuda.to_device(s)
         mandelbrot_api_gpu[(BLOCK_SIZE, BLOCK_SIZE), (grid_n, grid_n)](d_ans, d_base, d_s, max_iters + (i - 1) * 15, X0,
                                                                        Y0, FOUR)
 
         if generate:
             d_ans.to_host()
-            batch += [(i, ans.copy())]
+            batch += [(count, ans.copy())]
 
             print("Progress = %f" % (i * 100 / k))
             if len(batch) == batch_size:
@@ -210,13 +210,14 @@ def it(k, start, step, p=0.756242513):
         cpu.mul(s, speed, tmp)
         s = tmp.copy()
         tmp.fill(0)
-
-    for _ in range(k):
-        yield k, s
+    count = start
+    for j in range(k):
+        yield j, count, k, s
         for _ in range(step):
             cpu.mul(s, speed, tmp)
             s = tmp.copy()
             tmp.fill(0)
+            count += 1
 
 
 if __name__ == '__main__':
