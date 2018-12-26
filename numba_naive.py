@@ -5,8 +5,7 @@ import numpy as np
 from numba import jit
 
 T = 1024
-x0 = -0.7600189058857209
-y0 = -0.0799516080512771
+from utils import x0, y0
 N = 10
 
 
@@ -61,7 +60,7 @@ def format_x(x):
 
 
 def mandelbrot_naive(max_iters, ss, t=T, generate=False):
-    base = np.zeros(t, dtype=np.double)
+    base = np.zeros(t, dtype=np.float32)
     for i in range(t):
         base[i] = 2 * i / t - 1
 

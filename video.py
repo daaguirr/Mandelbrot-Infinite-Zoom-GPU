@@ -29,4 +29,4 @@ if __name__ == "__main__":
     filenames = [os.path.join(path, f) for f in filenames]
     filenames.sort(key=lambda x: x)
     print(filenames)
-    create_gif(filenames, 4/30)
+    create_gif(filenames, 1/30)

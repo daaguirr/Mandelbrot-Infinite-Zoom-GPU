@@ -12,7 +12,7 @@ N = 10
 
 NEG_ONE = cpu.encode(-1, N)
 TWO = cpu.encode(2, N)
-FORTH = cpu.encode(4, N)
+FOUR = cpu.encode(4, N)
 
 
 def measure_time(proc, **kwargs):
@@ -68,7 +68,7 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n, X0, Y0):
                 cpu.mul(zy, zy, tmp1)  # zy * zy
 
                 cpu.add(tmp, tmp1, tmp2)
-                if cpu.compare(tmp2, FORTH) > 0:
+                if cpu.compare(tmp2, FOUR) > 0:
                     if iters > 0:
                         iters -= 1
                     break
@@ -102,7 +102,7 @@ def mandelbrot_api_cpu(ans, base, s, max_iters, t, n, X0, Y0):
             cpu.mul(zy, zy, tmp1)  # zy * zy
 
             cpu.add(tmp, tmp1, tmp2)
-            if cpu.compare(tmp2, FORTH) > 0:
+            if cpu.compare(tmp2, FOUR) > 0:
                 ts = iters * 1.0 / max_iters
                 r = int(9 * (1 - ts) * ts * ts * ts * 255)
                 g = int(15 * (1 - ts) * (1 - ts) * ts * ts * 255)
